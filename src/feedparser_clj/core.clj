@@ -26,6 +26,17 @@
 
 (defrecord link [href hreflang length rel title type])
 
+(defrecord foreign-markup [qualified-name text value attributes])
+
+(defn make-foreign-markup
+  [e]
+  (map->foreign-markup {:qualified-name  (.getQualifiedName e)
+                        :text            (when (seq (.getText e))  (.getText e))
+                        :value           (when (seq (.getValue e)) (.getValue e))
+                        :attributes      (when-let [attrs (seq (.getAttributes e))]
+                                           (for [a attrs]
+                                             {:name (.getName a) :value (.getValue a)}))}))
+
 (defn make-enclosure "Create enclosure struct from SyndEnclosure"
   [e]
   (map->enclosure {:length (.getLength e) :type (.getType e)
@@ -77,6 +88,7 @@
                :published-date (.getPublishedDate e)
                :title (text-content (.getTitleEx e))
                :updated-date (.getUpdatedDate e)
+               :foreign-markup (map make-foreign-markup (seq (.getForeignMarkup e)))
                :uri (.getUri e)}))
 
 (defn make-feed "Create a feed struct from a SyndFeed"
